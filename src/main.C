@@ -1,29 +1,29 @@
-#include "StorkApp.h"
-#include "MooseInit.h"
 #include "Moose.h"
-#include "MooseApp.h"
-#include "AppFactory.h"
+
+#include "libmesh/libmesh.h"
+#include "libmesh/mesh.h"
 
 // Create a performance log
-PerfLog Moose::perf_log("Stork");
+PerfLog Moose::perf_log("Spread");
 
 // Begin the main program.
 int main(int argc, char *argv[])
 {
-  // Initialize MPI, solvers and MOOSE
-  MooseInit init(argc, argv);
+  if (argc < 3)
+  {
+    std::cout<<"Usage: ./spread-opt input.e output.nem"<<std::endl;
+    return 1;
+  }
 
-  // Register this application's MooseApp and any it depends on
-  StorkApp::registerApps();
+  LibMeshInit init (argc, argv);
 
-  // This creates dynamic memory that we're responsible for deleting
-  MooseApp * app = AppFactory::createApp("StorkApp", argc, argv);
+  Mesh mesh(init.comm());
 
-  // Execute the application
-  app->run();
+  mesh.read(argv[1]);
 
-  // Free up the memory we created earlier
-  delete app;
+  mesh.print_info();
+
+  mesh.write(argv[2]);
 
   return 0;
 }
